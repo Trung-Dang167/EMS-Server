@@ -3,7 +3,7 @@ const socketIo = require('socket.io');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth');
 const customizeRoutes = require('./routes/customize');
-const dashboardRoutes = require('./routes/dashboardRoutes');
+const dashboardRoutes = require('./routes/dashboard');
 const errorController = require('./controllers/error');
 const cors = require('cors');
 const db = require('./util/database');
@@ -12,7 +12,7 @@ const Modbus = require('modbus-serial');
 
 // Kết nối tới Modbus
 const MODBUS_TCP_PORT = 502;
-const MODBUS_TCP_IP = '192.168.1.10';
+const MODBUS_TCP_IP = '192.168.30.19';
 
 const client = new Modbus();
 client.connectTCP(MODBUS_TCP_IP, { port: MODBUS_TCP_PORT }, () => {
@@ -54,47 +54,24 @@ async function readAndWriteData() {
       const floatValue = floatArray[i];
       let tag = '';
 
+      const tagLookup = {
+        0: '1HNE10CQ207',
+        1: '1HNE10CQ205',
+        2: '1HNE10CQ204',
+        3: '1HNE10CQ203',
+        4: '1HNE10CQ202',
+        5: '1HNE10CQ201',
+        12: '1HNECQ206',
+        13: '1HNECF201',
+        14: '1HNECP201',
+        15: '1HNECQ002',
+        16: 'T-TT0301',
+        17: 'T-TT0302'
+      };
+
       if ((i >= 0 && i <= 5) || (i >= 12 && i <= 17)) {
-        switch (i) {
-          case 0:
-            tag = '1HNE10CQ207';
-            break;
-          case 1:
-            tag = '1HNE10CQ205';
-            break;
-          case 2:
-            tag = '1HNE10CQ204';
-            break;
-          case 3:
-            tag = '1HNE10CQ203';
-            break;
-          case 4:
-            tag = '1HNE10CQ202';
-            break;
-          case 5:
-            tag = '1HNE10CQ201';
-            break;
-          case 12:
-            tag = '1HNECQ206';
-            break;
-          case 13:
-            tag = '1HNECF201';
-            break;
-          case 14:
-            tag = '1HNECP201';
-            break;
-          case 15:
-            tag = '1HNECQ002';
-            break;
-          case 16:
-            tag = 'T-TT0301';
-            break;
-          case 17:
-            tag = 'T-TT0302';
-            break;
-          default:
-            break;
-        }
+        tag = tagLookup[i];
+
 
         const sql = `UPDATE data SET realtimeValue = ? WHERE tag = ?`;
         const values = [floatValue, tag];

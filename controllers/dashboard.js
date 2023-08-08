@@ -3,7 +3,6 @@ const data = require('../models/data');
 
 exports.fetchAll = async (req, res, next) => {
     try {
-        //Lấy dữ liệu từ SQL và trả về kết quả
         const [allData] = await data.fetchAll();
         res.status(200).json(allData)
     } catch (error) {
@@ -17,7 +16,6 @@ exports.fetchAll = async (req, res, next) => {
 exports.updateExpectedData = async (req, res, next) => {
     try {
       const putResponse = await data.updateExpectedValue(req.body.tag, req.body.expectedValue);
-    //   console.log(putResponse)
       res.status(200).json(putResponse);
     } catch (err) {
       if (!err.statusCode) {
