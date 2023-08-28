@@ -17,7 +17,7 @@ exports.fetchAll = async (req, res, next) => {
 exports.updateData = async (req, res, next) => {
     try {
       const putResponse = await Data.updateBounds(req.body.tag, req.body.upperbound, req.body.lowerbound);
-      console.log(putResponse)
+      // console.log(putResponse)
       res.status(200).json(putResponse);
     } catch (err) {
       if (!err.statusCode) {
