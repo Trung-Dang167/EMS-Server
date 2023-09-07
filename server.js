@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth');
 const customizeRoutes = require('./routes/customize');
 const dashboardRoutes = require('./routes/dashboard');
+const trendRoutes = require('./routes/trend');
 const errorController = require('./controllers/error');
 const cors = require('cors');
 const db = require('./util/database');
@@ -12,7 +13,7 @@ const Modbus = require('modbus-serial');
 
 //Define for connection Modbus_Dlogger
 const MODBUS_TCP_PORT = 502;
-const MODBUS_TCP_IP = '192.168.30.24';
+const MODBUS_TCP_IP = '192.168.30.41';
 const registerData = 72;
 const registerStatus = 154;
 const numberofRegister = 24;//số thanh ghi luôn chẵn
@@ -157,8 +158,8 @@ async function readAndWriteData() {
     // Thêm dữ liệu vào bảng histories
     const insertSql = `
       INSERT INTO histories
-      (value1, status1, value2, status2, value3, status3, value4, status4, value5, status5, value6, status6,
-      value7, status7, value8, status8, value9, status9, value10, status10, value11, status11, value12, status12)
+      (stack_flow, status1, stack_pressure, status2, gas_o2, status3, gas_co, status4, gas_nox, status5, gas_so2, status6,
+        gas_hcl, status7, stack_dust, status8, gas_h2o, status9, stack_temp, status10, temp_furnance301, status11, temp_furnance302, status12)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const insertValues = [
@@ -187,6 +188,7 @@ main.use(cors());
 main.use('/auth', authRoutes);
 main.use('/dashboard', dashboardRoutes);
 main.use('/customize', customizeRoutes);
+main.use('/trend', trendRoutes);
 main.use(errorController.get404);
 main.use(errorController.get500);
 
@@ -207,11 +209,21 @@ io.on('connection', (socket) => {
 
   setInterval(async () => {
     try {
-      const [allData] = await data.fetchAll();
-      socket.emit('data', allData);
-      // console.log('Giá trị gửi đi WebSocket:', allData);
+      const [dataResults] = await data.fetchData();
+      socket.emit('data', dataResults);
+      //  console.log('Giá trị gửi đi WebSocket:', dataResults);
     } catch (err) {
       console.error('Error while querying data from SQL:', err);
+    }
+  }, socketEmitInterval);
+
+  setInterval(async () => {
+    try {
+      const [historiesResults] = await data.fetchHistories();
+      socket.emit('histories', historiesResults);
+      //console.log('Giá trị gửi đi WebSocket:', historiesResults);
+    } catch (err) {
+      console.error('Error while querying histories from SQL:', err);
     }
   }, socketEmitInterval);
 });

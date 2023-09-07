@@ -3,7 +3,7 @@ const data = require('../models/data');
 
 exports.fetchAll = async (req, res, next) => {
     try {
-        const [allData] = await data.fetchAll();
+        const [allData] = await data.fetchData();
         res.status(200).json(allData)
     } catch (error) {
         if (!error.statusCode) {

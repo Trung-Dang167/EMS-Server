@@ -12,16 +12,13 @@ module.exports = class Data {
     this.lowerbound = lowerbound;
   }
 
-  static fetchAll() {
+  static fetchData() {
     return db.execute('SELECT * FROM data');
   }
 
-  // static save(data) {
-  //   return db.execute(
-  //     'INSERT INTO data (tag, name, expectedValue, realtimeValue, unit, designP, upperbound, lowerbound) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-  //     [data.tag, data.name, data.expectedValue, data.realtimeValue, data.unit, data.designP, data.upperbound, data.lowerbound]
-  //   );
-  // }
+  static fetchHistories() {
+    return db.execute('SELECT * FROM histories');
+  }
 
   static updateExpectedValue(tag, expectedValue) {
     return db.execute('UPDATE data SET expectedValue = ? WHERE tag = ?', [expectedValue, tag]);
