@@ -2,9 +2,9 @@ const express = require('express');
 const { body } = require('express-validator');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const dashboardController = require('../controllers/dashboard');
+const alarmController = require('../controllers/alarm');
 
-router.get('/', auth, dashboardController.fetchAll);
+router.get('/', auth, alarmController.fetchAlarmData);
 
 // router.put('/', auth, dashboardController.updateAlarmValueData);
 

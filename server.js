@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth');
 const customizeRoutes = require('./routes/customize');
 const dashboardRoutes = require('./routes/dashboard');
+const alarmRoutes = require('./routes/alarm');
 const trendRoutes = require('./routes/trend');
 const errorController = require('./controllers/error');
 const cors = require('cors');
@@ -13,11 +14,12 @@ const Modbus = require('modbus-serial');
 
 //Define for connection Modbus_Dlogger
 const MODBUS_TCP_PORT = 502;
-const MODBUS_TCP_IP = '192.168.30.41';
+const MODBUS_TCP_IP = '192.168.6.231';
 const registerData = 72;
 const registerStatus = 154;
-const numberofRegister = 24;//số thanh ghi luôn chẵn
-const socketEmitInterval = 1000;//milliseconds
+const numberofRegister = 20;//số thanh ghi luôn chẵn
+const socketEmitInterval = 3000;//milliseconds
+const intervalHistories = 10000;
 let isModbusConnected = false;
 
 //Define a map of indices to tags
@@ -26,14 +28,12 @@ const tagMap = {
   1: '1HNE10CT201',
   2: '1HNE10CP201',
   3: '1HNE10CQ206',
-  4: 'T-TT0301',
-  5: 'T-TT0302',
-  6: '1HNE10CQ207',
-  7: '1HNE10CQ205',
-  8: '1HNE10CQ204',
-  9: '1HNE10CQ203',
-  10: '1HNE10CQ202',
-  11: '1HNE10CQ201',
+  4: '1HNE10CQ207',
+  5: '1HNE10CQ205',
+  6: '1HNE10CQ204',
+  7: '1HNE10CQ203',
+  8: '1HNE10CQ202',
+  9: '1HNE10CQ201',
 }
 
 const client = new Modbus();
@@ -47,24 +47,22 @@ function connectModbus(){
 
 async function initializeData(){
   const initialData = [
-    {tag: '1HNE10CQ207', name: 'Flue gas H20', expectedValue: '10.0', unit: 'vol', designP: 'at stack', upperbound: '33', lowerbound: '0', status: 'Normal'},
-    {tag: '1HNE10CQ205', name: 'Flue gas HCl', expectedValue: '100.0', unit: 'mg/Nm3', designP: 'at stack', upperbound: '200', lowerbound: '0', status: 'Normal' },
-    {tag: '1HNE10CQ204', name: 'Flue gas SO2', expectedValue: '250.0', unit: 'mg/Nm3', designP: 'at stack', upperbound: '500', lowerbound: '0', status: 'Normal' },
-    {tag: '1HNE10CQ203', name: 'Flue gas NOx', expectedValue: '400.0', unit: 'mg/Nm3', designP: 'at stack', upperbound: '800', lowerbound: '0', status: 'Normal' },
-    {tag: '1HNE10CQ202', name: 'Flue gas CO', expectedValue: '350.0', unit: 'mg/Nm3', designP: 'at stack', upperbound: '700', lowerbound: '0', status: 'Normal' },
-    {tag: '1HNE10CQ201', name: 'Flue gas O2', expectedValue: '11.0', unit: 'mg/Nm3', designP: 'at stack', upperbound: '21', lowerbound: '0', status: 'Normal' },
-    {tag: '1HNE10CF201', name: 'Stack Flow', expectedValue: '13.0', unit: 'Nm3/s', designP: 'at stack', upperbound: '27', lowerbound: '0', status: 'Normal' },
-    {tag: '1HNE10CT201', name: 'Stack Temperature', expectedValue: '100.0', unit: 'oC', designP: 'at stack', upperbound: '200', lowerbound: '0', status: 'Normal' },
-    {tag: '1HNE10CP201', name: 'Stack Pressure', expectedValue: '500.0', unit: 'Pa', designP: 'at stack', upperbound: '1000', lowerbound: '-500', status: 'Normal' },
-    {tag: '1HNE10CQ206', name: 'Stack Dust', expectedValue: '150.0', unit: 'mg/Nm3', designP: 'at stack', upperbound: '300', lowerbound: '0', status: 'Normal' },
-    {tag: 'T-TT0301', name: 'Temp. Furnace 301', expectedValue: '100.0', unit: 'oC', designP: 'at stack', upperbound: '200', lowerbound: '0', status: 'Normal' },
-    {tag: 'T-TT0302', name: 'Temp. Furnace 302', expectedValue: '100.0', unit: 'oC', designP: 'at stack', upperbound: '200', lowerbound: '0', status: 'Normal' },
+    {tag: '1HNE10CQ207', name: 'H20',         unit: 'vol',    status: 'Normal', maxValue:'33', minValue:'0', alarmValue:'28', alarmStatus: 'Normal' },
+    {tag: '1HNE10CQ205', name: 'HCl',         unit: 'mg/Nm3', status: 'Normal', maxValue:'200', minValue:'0', alarmValue:'180', alarmStatus: 'Normal' },
+    {tag: '1HNE10CQ204', name: 'SO2',         unit: 'mg/Nm3', status: 'Normal', maxValue:'500', minValue:'0',  alarmValue:'400', alarmStatus: 'Normal' },
+    {tag: '1HNE10CQ203', name: 'NOx',         unit: 'mg/Nm3', status: 'Normal', maxValue:'800', minValue:'0',  alarmValue:'700', alarmStatus: 'Normal' },
+    {tag: '1HNE10CQ202', name: 'CO',          unit: 'mg/Nm3', status: 'Normal', maxValue:'700', minValue:'0',  alarmValue:'600', alarmStatus: 'Normal' },
+    {tag: '1HNE10CQ201', name: 'O2',          unit: 'vol',    status: 'Normal', maxValue:'21', minValue:'0',  alarmValue:'20', alarmStatus: 'Normal' },
+    {tag: '1HNE10CF201', name: 'Flow',        unit: 'Nm3/s',  status: 'Normal', maxValue:'27', minValue:'0',  alarmValue:'20', alarmStatus: 'Normal' },
+    {tag: '1HNE10CT201', name: 'Temperature', unit: 'oC',     status: 'Normal', maxValue:'200', minValue:'0',  alarmValue:'180', alarmStatus: 'Normal' },
+    {tag: '1HNE10CP201', name: 'Pressure',    unit: 'Pa',     status: 'Normal', maxValue:'1000', minValue:'-500',  alarmValue:'800', alarmStatus: 'Normal' },
+    {tag: '1HNE10CQ206', name: 'Dust',        unit: 'mg/Nm3', status: 'Normal', maxValue:'300', minValue:'0',  alarmValue:'250', alarmStatus: 'Normal' },
   ];
   const connection = await db.getConnection();
   try {
     for (const rowData of initialData){
-      const sql = 'INSERT IGNORE INTO data (tag, name, expectedValue, realtimeValue, unit, designP, upperbound, lowerbound, status) VALUES (?,?,?,?,?,?,?,?,?)';
-      const values = [rowData.tag, rowData.name, rowData.expectedValue, 0, rowData.unit, rowData.designP, rowData.upperbound, rowData.lowerbound, rowData.status];
+      const sql = 'INSERT IGNORE INTO data (tag, name, realtimeValue, unit, time, status, minValue, alarmValue, alarmStatus) VALUES (?,?,?,?,?,?,?,?,?)';
+      const values = [rowData.tag, rowData.name, 0, rowData.unit, 0, rowData.status, rowData.minValue, rowData.alarmValue, rowData.alarmStatus];
 
       await connection.query(sql, values);
     }
@@ -75,6 +73,11 @@ async function initializeData(){
     connection.release();
   }  
 }
+
+// let floatArrayStatus = [0, 0 , 0 , 0, 0, 0, 0, 0, 0, 0, 0, 0];
+let floatArrayStatusBuffer = [0.00, 0.00 , 0.00 , 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00];
+// let maxValueRange = [27.00, 200.00, 1000.00, 300.00, 33.00, 200.00, 500.00, 800.00, 70.00, 21.00];
+let minValueRange = [0.00, 0.00, -500.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00];
 
 function getStatusText(floatStatus) {
   if (floatStatus == 0) {
@@ -88,10 +91,30 @@ function getStatusText(floatStatus) {
   }
 }
 
+async function updateAlarmStatusText(tag, floatArrayData){
+  try {
+    const [alarmValueObj] = await data.fetchAlamrValue(tag);
+    const alarmValue = parseFloat(alarmValueObj[0].alarmValue);
+    if (isNaN(alarmValue)) {
+      console.error(`Giá trị alarm cho tag ${tag} không hợp lệ: ${alarmValueObj[0].alarmValue}`);
+      return 'Error';
+    }
+    if (floatArrayData >= alarmValue) {
+      // console.log(`Giá trị của tag ${tag}; Alarm Value: ${alarmValue}; Data: ${floatArrayData}; High`);
+      return 'High';
+    } else {
+      // console.log(`Giá trị của tag ${tag}; Alarm Value: ${alarmValue}; Data: ${floatArrayData}; Normal`);
+      return 'Normal';
+    }
+  } catch(err) {
+    console.error("Lỗi trong quá trình đọc giá trị alarm", err);
+    return 'Error';
+  }
+}
+
 // Read Modbus data and status then update to database
 async function readAndWriteData() {
   try {
-    let statusValues = [];
     // Read measured value: Value register
     const data = await new Promise((resolve, reject) => {
       client.readHoldingRegisters(registerData, numberofRegister, (err, data) => {
@@ -126,7 +149,8 @@ async function readAndWriteData() {
       floatArrayData.push(roundedValueData);
     }
 
-    let floatArrayStatus = [];
+    // console.log("floatdata read",floatArrayData);
+    const floatArrayStatus = [];
     for (let i = 0; i < numberofRegister - 1; i += 2) {
       const highByteStatus = status.data[i];
       const lowByteStatus = status.data[i + 1];
@@ -150,27 +174,12 @@ async function readAndWriteData() {
       const floatData = floatArrayData[i];
       const statusText = statusArrayText[i];
       const tag = tagMap[i];
-      const sql = `UPDATE data SET realtimeValue = ?, status = ?, time = NOW() WHERE tag = ?`;
-      const values = [floatData, statusText, tag];
+      const alarmText = await updateAlarmStatusText(tag, floatData);
+      // console.log(`Giá trị alarm cho tag ${tag}:`,alarmText);
+      const sql = `UPDATE data SET realtimeValue = ?, status = ?, alarmStatus = ?, time = NOW() WHERE tag = ?`;
+      const values = [floatData, statusText, alarmText, tag];
       await connection.query(sql, values);
     }
-    
-    // Thêm dữ liệu vào bảng histories
-    const insertSql = `
-      INSERT INTO histories
-      (stack_flow, status1, stack_pressure, status2, gas_o2, status3, gas_co, status4, gas_nox, status5, gas_so2, status6,
-        gas_hcl, status7, stack_dust, status8, gas_h2o, status9, stack_temp, status10, temp_furnance301, status11, temp_furnance302, status12)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    const insertValues = [
-      floatArrayData[0], statusArrayText[0], floatArrayData[1], statusArrayText[1],
-      floatArrayData[2], statusArrayText[2], floatArrayData[3], statusArrayText[3],
-      floatArrayData[4], statusArrayText[4], floatArrayData[5], statusArrayText[5],
-      floatArrayData[6], statusArrayText[6], floatArrayData[7], statusArrayText[7],
-      floatArrayData[8], statusArrayText[8], floatArrayData[9], statusArrayText[9],
-      floatArrayData[10], statusArrayText[10], floatArrayData[11], statusArrayText[11]
-    ];
-    await connection.query(insertSql, insertValues);
 
     connection.release();
   } catch (err) {
@@ -187,6 +196,7 @@ main.use(bodyParser.json());
 main.use(cors());
 main.use('/auth', authRoutes);
 main.use('/dashboard', dashboardRoutes);
+main.use('/alarm', alarmRoutes);
 main.use('/customize', customizeRoutes);
 main.use('/trend', trendRoutes);
 main.use(errorController.get404);
@@ -205,8 +215,7 @@ const io = socketIo(server, {
 });
 
 io.on('connection', (socket) => {
-  console.log('WebSocket Connected.');
-
+  console.log('WebSocket Connected Server.');
   setInterval(async () => {
     try {
       const [dataResults] = await data.fetchData();
@@ -217,15 +226,25 @@ io.on('connection', (socket) => {
     }
   }, socketEmitInterval);
 
+  // setInterval(async () => {
+  //   try {
+  //     const [historiesResults] = await data.fetchHistories();
+  //     socket.emit('histories', historiesResults);
+  //     //console.log('Giá trị gửi đi WebSocket:', historiesResults);
+  //   } catch (err) {
+  //     console.error('Error while querying histories from SQL:', err);
+  //   }
+  // }, socketEmitInterval);
+
   setInterval(async () => {
     try {
-      const [historiesResults] = await data.fetchHistories();
-      socket.emit('histories', historiesResults);
-      //console.log('Giá trị gửi đi WebSocket:', historiesResults);
+      const [alarmResults] = await data.fetchAlarm();
+      socket.emit('alarm', alarmResults);
     } catch (err) {
-      console.error('Error while querying histories from SQL:', err);
+      console.error('Error while querying alarm from SQL:', err);
     }
   }, socketEmitInterval);
+
 });
 connectModbus();
 initializeData();

@@ -1,10 +1,10 @@
 const { validationResult } = require('express-validator');
 const data = require('../models/data');
 
-exports.fetchAll = async (req, res, next) => {
+exports.fetchTrend = async (req, res, next) => {
     try {
-        const [allData] = await data.fetchHistories();
-        res.status(200).json(allData)
+        const [trendData] = await data.fetchHistories();
+        res.status(200).json(trendData)
     } catch (error) {
         if (!error.statusCode) {
             error.statusCode = 500;
@@ -15,7 +15,7 @@ exports.fetchAll = async (req, res, next) => {
 
 exports.updateExpectedData = async (req, res, next) => {
     try {
-      const putResponse = await data.updateExpectedValue(req.body.tag, req.body.expectedValue);
+      const putResponse = await data.updateAlarmValue(req.body.tag, req.body.expectedValue);
       res.status(200).json(putResponse);
     } catch (err) {
       if (!err.statusCode) {
