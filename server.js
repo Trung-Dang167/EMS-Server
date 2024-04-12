@@ -74,11 +74,6 @@ async function initializeData(){
   }  
 }
 
-// let floatArrayStatus = [0, 0 , 0 , 0, 0, 0, 0, 0, 0, 0, 0, 0];
-let floatArrayStatusBuffer = [0.00, 0.00 , 0.00 , 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00];
-// let maxValueRange = [27.00, 200.00, 1000.00, 300.00, 33.00, 200.00, 500.00, 800.00, 70.00, 21.00];
-let minValueRange = [0.00, 0.00, -500.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00];
-
 function getStatusText(floatStatus) {
   if (floatStatus == 0) {
     return 'Normal';
@@ -225,16 +220,6 @@ io.on('connection', (socket) => {
       console.error('Error while querying data from SQL:', err);
     }
   }, socketEmitInterval);
-
-  // setInterval(async () => {
-  //   try {
-  //     const [historiesResults] = await data.fetchHistories();
-  //     socket.emit('histories', historiesResults);
-  //     //console.log('Giá trị gửi đi WebSocket:', historiesResults);
-  //   } catch (err) {
-  //     console.error('Error while querying histories from SQL:', err);
-  //   }
-  // }, socketEmitInterval);
 
   setInterval(async () => {
     try {
