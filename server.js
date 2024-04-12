@@ -190,7 +190,6 @@ async function readAndWriteData() {
 }
 
 const main = express();
-const ports = process.env.PORT || 3000;
 
 main.use(bodyParser.json());
 main.use(cors());
