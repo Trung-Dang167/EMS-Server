@@ -17,9 +17,7 @@ router.post(
     }),
     body('password').trim().isLength({ min: 7 })
   ],
-
   authController.signup,
-  
 );
 
 router.post('/login', authController.login);

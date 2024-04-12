@@ -6,6 +6,6 @@ const auth = require('../middleware/auth')
 
 router.get('/', auth, customizeController.fetchAll);
 
-router.put("/", customizeController.updateData);
+router.put("/", auth, customizeController.updateData);
 
 module.exports = router;
