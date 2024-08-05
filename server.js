@@ -47,34 +47,34 @@ function connectModbus(){
   });
 }
 
-async function initializeData(){
-  const initialData = [
-    {tag: '1HNE10CQ207', name: 'H20',         unit: 'vol',    status: 'Normal', maxValue:'33', minValue:'0', alarmValue:'28', alarmStatus: 'Normal', order: 1 },
-    {tag: '1HNE10CQ205', name: 'HCl',         unit: 'mg/Nm3', status: 'Normal', maxValue:'200', minValue:'0', alarmValue:'180', alarmStatus: 'Normal', order: 2 },
-    {tag: '1HNE10CQ204', name: 'SO2',         unit: 'mg/Nm3', status: 'Normal', maxValue:'500', minValue:'0',  alarmValue:'400', alarmStatus: 'Normal', order: 3 },
-    {tag: '1HNE10CQ203', name: 'NOx',         unit: 'mg/Nm3', status: 'Normal', maxValue:'800', minValue:'0',  alarmValue:'700', alarmStatus: 'Normal', order: 4 },
-    {tag: '1HNE10CQ202', name: 'CO',          unit: 'mg/Nm3', status: 'Normal', maxValue:'700', minValue:'0',  alarmValue:'600', alarmStatus: 'Normal', order: 5 },
-    {tag: '1HNE10CQ201', name: 'O2',          unit: 'vol',    status: 'Normal', maxValue:'21', minValue:'0',  alarmValue:'20', alarmStatus: 'Normal', order: 6 },
-    {tag: '1HNE10CF201', name: 'Flow',        unit: 'Nm3/s',  status: 'Normal', maxValue:'27', minValue:'0',  alarmValue:'20', alarmStatus: 'Normal', order: 7 },
-    {tag: '1HNE10CT201', name: 'Temperature', unit: 'oC',     status: 'Normal', maxValue:'200', minValue:'0',  alarmValue:'180', alarmStatus: 'Normal', order: 8 },
-    {tag: '1HNE10CP201', name: 'Pressure',    unit: 'Pa',     status: 'Normal', maxValue:'1000', minValue:'-500',  alarmValue:'800', alarmStatus: 'Normal', order: 9 },
-    {tag: '1HNE10CQ206', name: 'Dust',        unit: 'mg/Nm3', status: 'Normal', maxValue:'300', minValue:'0',  alarmValue:'250', alarmStatus: 'Normal', order: 10 },
-  ];
-  const connection = await db.getConnection();
-  try {
-    for (const rowData of initialData){
-      const sql = 'INSERT IGNORE INTO data (tag, name, realtimeValue, unit, time, status, minValue, alarmValue, alarmStatus, order) VALUES (?,?,?,?,?,?,?,?,?,?)';
-      const values = [rowData.tag, rowData.name, 0, rowData.unit, 0, rowData.status, rowData.minValue, rowData.alarmValue, rowData.alarmStatus, rowData.order];
+// async function initializeData(){
+//   const initialData = [
+//     {tag: '1HNE10CQ207', name: 'H20',         unit: 'vol',    status: 'Normal', maxValue:'33', minValue:'0', alarmValue:'28', alarmStatus: 'Normal', order: 1 },
+//     {tag: '1HNE10CQ205', name: 'HCl',         unit: 'mg/Nm3', status: 'Normal', maxValue:'200', minValue:'0', alarmValue:'180', alarmStatus: 'Normal', order: 2 },
+//     {tag: '1HNE10CQ204', name: 'SO2',         unit: 'mg/Nm3', status: 'Normal', maxValue:'500', minValue:'0',  alarmValue:'400', alarmStatus: 'Normal', order: 3 },
+//     {tag: '1HNE10CQ203', name: 'NOx',         unit: 'mg/Nm3', status: 'Normal', maxValue:'800', minValue:'0',  alarmValue:'700', alarmStatus: 'Normal', order: 4 },
+//     {tag: '1HNE10CQ202', name: 'CO',          unit: 'mg/Nm3', status: 'Normal', maxValue:'700', minValue:'0',  alarmValue:'600', alarmStatus: 'Normal', order: 5 },
+//     {tag: '1HNE10CQ201', name: 'O2',          unit: 'vol',    status: 'Normal', maxValue:'21', minValue:'0',  alarmValue:'20', alarmStatus: 'Normal', order: 6 },
+//     {tag: '1HNE10CF201', name: 'Flow',        unit: 'Nm3/s',  status: 'Normal', maxValue:'27', minValue:'0',  alarmValue:'20', alarmStatus: 'Normal', order: 7 },
+//     {tag: '1HNE10CT201', name: 'Temperature', unit: 'oC',     status: 'Normal', maxValue:'200', minValue:'0',  alarmValue:'180', alarmStatus: 'Normal', order: 8 },
+//     {tag: '1HNE10CP201', name: 'Pressure',    unit: 'Pa',     status: 'Normal', maxValue:'1000', minValue:'-500',  alarmValue:'800', alarmStatus: 'Normal', order: 9 },
+//     {tag: '1HNE10CQ206', name: 'Dust',        unit: 'mg/Nm3', status: 'Normal', maxValue:'300', minValue:'0',  alarmValue:'250', alarmStatus: 'Normal', order: 10 },
+//   ];
+//   const connection = await db.getConnection();
+//   try {
+//     for (const rowData of initialData){
+//       const sql = 'INSERT IGNORE INTO data (tag, name, realtimeValue, unit, time, status, minValue, alarmValue, alarmStatus, order) VALUES (?,?,?,?,?,?,?,?,?,?)';
+//       const values = [rowData.tag, rowData.name, 0, rowData.unit, 0, rowData.status, rowData.minValue, rowData.alarmValue, rowData.alarmStatus, rowData.order];
 
-      await connection.query(sql, values);
-    }
-    console.log('Initial data inserted.');
-  } catch (error){
-    console.error('Error inserting initial data:', error);
-  } finally {
-    connection.release();
-  }  
-}
+//       await connection.query(sql, values);
+//     }
+//     console.log('Initial data inserted.');
+//   } catch (error){
+//     console.error('Error inserting initial data:', error);
+//   } finally {
+//     connection.release();
+//   }  
+// }
 
 function getStatusText(floatStatus) {
   if (floatStatus == 0) {
